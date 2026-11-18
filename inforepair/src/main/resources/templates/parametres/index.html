@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: entete('Paramètres')}"></head>
+<body>
+<div class="app-wrapper">
+    <aside th:replace="~{fragments/layout :: menu}"></aside>
+    <div class="main-area">
+        <header th:replace="~{fragments/layout :: topbar('Paramètres')}"></header>
+        <main class="content">
+            <div th:replace="~{fragments/layout :: messages}"></div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-header"><h2 class="card-title">Informations de l'entreprise</h2></div>
+
+                    <form sec:authorize="hasRole('ADMIN')" th:action="@{/parametres/entreprise}" th:object="${parametres}" method="post">
+                        <input type="hidden" th:field="*{id}">
+                        <div class="form-group">
+                            <label for="nomEntreprise">Nom de l'entreprise</label>
+                            <input type="text" id="nomEntreprise" th:field="*{nomEntreprise}" required>
+                            <div class="field-error" th:if="${#fields.hasErrors('nomEntreprise')}" th:errors="*{nomEntreprise}"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="commune">Commune</label>
+                            <input type="text" id="commune" th:field="*{commune}">
+                        </div>
+                        <div class="form-group">
+                            <label for="adresse">Adresse</label>
+                            <input type="text" id="adresse" th:field="*{adresse}">
+                        </div>
+                        <div class="form-group">
+                            <label for="telephone">Numéro de téléphone</label>
+                            <input type="text" id="telephone" th:field="*{telephone}">
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Adresse électronique</label>
+                            <input type="email" id="email" th:field="*{email}">
+                            <div class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Enregistrer les paramètres</button>
+                    </form>
+
+                    <div sec:authorize="!hasRole('ADMIN')" class="info-list">
+                        <div>
+                            <div class="info-item-label">Nom de l'entreprise</div>
+                            <div class="info-item-value" th:text="${parametres.nomEntreprise}"></div>
+                        </div>
+                        <div>
+                            <div class="info-item-label">Commune</div>
+                            <div class="info-item-value" th:text="${parametres.commune != null ? parametres.commune : '-'}"></div>
+                        </div>
+                        <div>
+                            <div class="info-item-label">Adresse</div>
+                            <div class="info-item-value" th:text="${parametres.adresse != null ? parametres.adresse : '-'}"></div>
+                        </div>
+                        <div>
+                            <div class="info-item-label">Téléphone</div>
+                            <div class="info-item-value" th:text="${parametres.telephone != null ? parametres.telephone : '-'}"></div>
+                        </div>
+                        <div>
+                            <div class="info-item-label">Adresse électronique</div>
+                            <div class="info-item-value" th:text="${parametres.email != null ? parametres.email : '-'}"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header"><h2 class="card-title">Modifier mon mot de passe</h2></div>
+                    <form th:action="@{/parametres/mot-de-passe}" method="post">
+                        <div class="form-group">
+                            <label for="motDePasseActuel">Mot de passe actuel</label>
+                            <input type="password" id="motDePasseActuel" name="motDePasseActuel" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="nouveauMotDePasse">Nouveau mot de passe (min. 6 caractères)</label>
+                            <input type="password" id="nouveauMotDePasse" name="nouveauMotDePasse" minlength="6" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="confirmationMotDePasse">Confirmer le nouveau mot de passe</label>
+                            <input type="password" id="confirmationMotDePasse" name="confirmationMotDePasse" minlength="6" required>
+                        </div>
+                        <button type="submit" class="btn btn-secondary">Mettre à jour mon mot de passe</button>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: entete('Détails de la réparation')}"></head>
+<body>
+<div class="app-wrapper">
+    <aside th:replace="~{fragments/layout :: menu}"></aside>
+    <div class="main-area">
+        <header th:replace="~{fragments/layout :: topbar('Réparation : ' + ${reparation.numeroReparation})}"></header>
+        <main class="content">
+            <div th:replace="~{fragments/layout :: messages}"></div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title" th:text="${reparation.numeroReparation + ' - ' + reparation.materiel.marque + ' ' + reparation.materiel.modele}"></h2>
+                    <div class="actions-row" sec:authorize="hasAnyRole('ADMIN','AGENT')">
+                        <a th:if="${resteAPayer.compareTo(T(java.math.BigDecimal).ZERO) > 0 and reparation.statut.name() != 'ANNULEE'}"
+                           th:href="@{/paiements/nouveau(reparationId=${reparation.id})}" class="btn btn-primary btn-sm">Enregistrer un paiement</a>
+                        <a th:href="@{/plaintes/nouveau(reparationId=${reparation.id})}" class="btn btn-outline btn-sm">Enregistrer une plainte</a>
+                        <form th:if="${(reparation.statut.name() == 'TERMINEE' or reparation.statut.name() == 'PRETE_A_ETRE_RETIREE') and reparation.materiel.etatActuel.name() != 'REMIS_AU_CLIENT'}"
+                              th:action="@{/reparations/{id}/remettre(id=${reparation.id})}" method="post" class="inline-form">
+                            <button type="submit" class="btn btn-success btn-sm">Marquer remis au client</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="info-list">
+                    <div>
+                        <div class="info-item-label">Statut de la réparation</div>
+                        <div class="info-item-value"><span class="badge" th:text="${reparation.statut.libelle}"></span></div>
+                    </div>
+                    <div>
+                        <div class="info-item-label">Client</div>
+                        <div class="info-item-value" th:text="${reparation.client.nomComplet + ' (' + reparation.client.telephone + ')'}"></div>
+                    </div>
+                    <div>
+                        <div class="info-item-label">Matériel</div>
+                        <div class="info-item-value">
+                            <a th:href="@{/materiels/{id}(id=${reparation.materiel.id})}"
+                               th:text="${reparation.materiel.numeroDossier + ' (' + reparation.materiel.etatActuel.libelle + ')'}"></a>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="info-item-label">Devis accepté associé</div>
+                        <div class="info-item-value">
+                            <a th:href="@{/devis/{id}(id=${reparation.devis.id})}"
+                               th:text="${reparation.devis.numeroDevis + ' (' + @formatUtils.fcfa(reparation.devis.montantTotal) + ')'}"></a>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="info-item-label">Technicien responsable</div>
+                        <div class="info-item-value" th:text="${reparation.technicien != null ? reparation.technicien.nomComplet : 'Non affecté'}"></div>
+                    </div>
+                    <div>
+                        <div class="info-item-label">Date de début / fin</div>
+                        <div class="info-item-value" th:text="${@formatUtils.date(reparation.dateDebut) + ' / ' + @formatUtils.date(reparation.dateFin)}"></div>
+                    </div>
+                    <div>
+                        <div class="info-item-label">Total payé</div>
+                        <div class="info-item-value" th:text="${@formatUtils.fcfa(totalPaye)}"></div>
+                    </div>
+                    <div>
+                        <div class="info-item-label">Reste à payer</div>
+                        <div class="info-item-value"><strong th:text="${@formatUtils.fcfa(resteAPayer)}"></strong></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" th:if="${reparation.statut.name() != 'PRETE_A_ETRE_RETIREE' and reparation.statut.name() != 'ANNULEE'}">
+                <div class="card-header"><h2 class="card-title">Mettre à jour la réparation</h2></div>
+                <form th:action="@{/reparations/{id}/mettre-a-jour(id=${reparation.id})}" method="post">
+                    <div class="form-grid">
+                        <div class="form-group" sec:authorize="hasAnyRole('ADMIN','AGENT')">
+                            <label for="technicienId">Technicien affecté</label>
+                            <select id="technicienId" name="technicienId">
+                                <option value="">-- Non affecté --</option>
+                                <option th:each="t : ${techniciens}" th:value="${t.id}" th:text="${t.nomComplet}"
+                                        th:selected="${reparation.technicien != null and reparation.technicien.id == t.id}"></option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="statut">Statut d'avancement</label>
+                            <select id="statut" name="statut" required>
+                                <option th:each="s : ${statutsReparation}" th:value="${s}" th:text="${s.libelle}"
+                                        th:selected="${reparation.statut == s}"></option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="dateFin">Date de fin (facultative)</label>
+                            <input type="date" id="dateFin" name="dateFin"
+                                   th:value="${reparation.dateFin != null ? #temporals.format(reparation.dateFin, 'yyyy-MM-dd') : ''}">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="coutPieces">Coût des pièces (FCFA)</label>
+                            <input type="number" id="coutPieces" name="coutPieces" min="0" step="1"
+                                   th:value="${reparation.coutPieces != null ? reparation.coutPieces.intValue() : 0}">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="coutMainOeuvre">Coût de la main-d'œuvre (FCFA)</label>
+                            <input type="number" id="coutMainOeuvre" name="coutMainOeuvre" min="0" step="1"
+                                   th:value="${reparation.coutMainOeuvre != null ? reparation.coutMainOeuvre.intValue() : 0}">
+                        </div>
+
+                        <div class="form-group full">
+                            <label for="descriptionTravail">Description du travail effectué</label>
+                            <textarea id="descriptionTravail" name="descriptionTravail" th:text="${reparation.descriptionTravail}"></textarea>
+                        </div>
+
+                        <div class="form-group full">
+                            <label for="piecesUtilisees">Pièces utilisées</label>
+                            <input type="text" id="piecesUtilisees" name="piecesUtilisees" th:value="${reparation.piecesUtilisees}">
+                        </div>
+
+                        <div class="form-group full">
+                            <label for="observation">Observation technique</label>
+                            <textarea id="observation" name="observation" th:text="${reparation.observation}"></textarea>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+                </form>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-header"><h2 class="card-title">Ajouter une intervention technique</h2></div>
+                    <form th:if="${reparation.statut.name() != 'ANNULEE'}" th:action="@{/reparations/{id}/interventions(id=${reparation.id})}" method="post">
+                        <div class="form-group">
+                            <label for="descriptionIntervention">Travail réalisé</label>
+                            <textarea id="descriptionIntervention" name="descriptionTravail" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="piecesIntervention">Pièces utilisées (facultatif)</label>
+                            <input type="text" id="piecesIntervention" name="piecesUtilisees">
+                        </div>
+                        <div class="form-group">
+                            <label for="obsIntervention">Observation (facultative)</label>
+                            <input type="text" id="obsIntervention" name="observation">
+                        </div>
+                        <button type="submit" class="btn btn-secondary">Enregistrer l'intervention</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <div class="card-header"><h2 class="card-title">Historique des interventions</h2></div>
+                    <div class="table-responsive" th:if="${!#lists.isEmpty(interventions)}">
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Technicien</th>
+                                <th>Travail effectué</th>
+                                <th>Pièces / Obs.</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="i : ${interventions}">
+                                <td th:text="${@formatUtils.dateTime(i.dateIntervention)}"></td>
+                                <td th:text="${i.technicien != null ? i.technicien.nomComplet : '-'}"></td>
+                                <td th:text="${i.descriptionTravail}"></td>
+                                <td th:text="${(i.piecesUtilisees != null ? i.piecesUtilisees : '') + (i.observation != null ? ' | ' + i.observation : '')}"></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-muted" th:if="${#lists.isEmpty(interventions)}">Aucune intervention enregistrée pour le moment.</p>
+                </div>
+            </div>
+
+            <div class="card" sec:authorize="hasAnyRole('ADMIN','AGENT')">
+                <div class="card-header"><h2 class="card-title">Paiements liés à cette réparation</h2></div>
+                <div class="table-responsive" th:if="${!#lists.isEmpty(paiements)}">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Numéro</th>
+                            <th>Date</th>
+                            <th>Mode</th>
+                            <th>Référence</th>
+                            <th>Montant</th>
+                            <th>Statut</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="p : ${paiements}">
+                            <td th:text="${p.numeroPaiement}"></td>
+                            <td th:text="${@formatUtils.date(p.datePaiement)}"></td>
+                            <td th:text="${p.modePaiement.libelle}"></td>
+                            <td th:text="${p.reference != null ? p.reference : '-'}"></td>
+                            <td th:text="${@formatUtils.fcfa(p.montant)}"></td>
+                            <td>
+                                <span class="badge" th:classappend="${p.annule} ? 'badge-erreur' : 'badge-succes'"
+                                      th:text="${p.annule} ? 'Annulé' : 'Valide'"></span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-muted" th:if="${#lists.isEmpty(paiements)}">Aucun paiement enregistré pour cette réparation.</p>
+            </div>
+        </main>
+    </div>
+</div>
+</body>
+</html>

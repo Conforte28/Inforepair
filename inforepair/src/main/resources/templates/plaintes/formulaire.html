@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: entete(${plainte.id == null ? 'Nouvelle plainte' : 'Modifier la plainte'})}"></head>
+<body>
+<div class="app-wrapper">
+    <aside th:replace="~{fragments/layout :: menu}"></aside>
+    <div class="main-area">
+        <header th:replace="~{fragments/layout :: topbar(${plainte.id == null ? 'Enregistrer une plainte' : 'Modifier la plainte ' + plainte.numeroPlainte})}"></header>
+        <main class="content">
+            <div th:replace="~{fragments/layout :: messages}"></div>
+
+            <div class="card">
+                <form th:action="@{/plaintes/enregistrer}" th:object="${plainte}" method="post">
+                    <input type="hidden" th:field="*{id}">
+                    <input type="hidden" th:field="*{numeroPlainte}">
+                    <input type="hidden" th:field="*{statut}">
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="client">Client concerné</label>
+                            <select id="client" th:field="*{client.id}" required>
+                                <option value="">-- Sélectionner un client --</option>
+                                <option th:each="c : ${clients}" th:value="${c.id}"
+                                        th:text="${c.nomComplet + ' (' + c.telephone + ')'}"></option>
+                            </select>
+                            <div class="field-error" th:if="${#fields.hasErrors('client')}" th:errors="*{client}"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="typePlainte">Type de plainte</label>
+                            <select id="typePlainte" th:field="*{typePlainte}" required>
+                                <option value="">-- Sélectionner un type --</option>
+                                <option th:each="t : ${typesPlainte}" th:value="${t}" th:text="${t.libelle}"></option>
+                            </select>
+                            <div class="field-error" th:if="${#fields.hasErrors('typePlainte')}" th:errors="*{typePlainte}"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="materiel">Matériel concerné (facultatif)</label>
+                            <select id="materiel" name="materiel">
+                                <option value="">-- Plainte générale / Aucun --</option>
+                                <option th:each="m : ${materiels}" th:value="${m.id}"
+                                        th:selected="${plainte.materiel != null and plainte.materiel.id == m.id}"
+                                        th:text="${m.numeroDossier + ' - ' + m.marque + ' ' + m.modele}"></option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="reparation">Réparation concernée (facultative)</label>
+                            <select id="reparation" name="reparation">
+                                <option value="">-- Aucune --</option>
+                                <option th:each="r : ${reparations}" th:value="${r.id}"
+                                        th:selected="${plainte.reparation != null and plainte.reparation.id == r.id}"
+                                        th:text="${r.numeroReparation + ' (' + r.client.nomComplet + ')'}"></option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="dateDepot">Date de dépôt</label>
+                            <input type="date" id="dateDepot" name="dateDepot"
+                                   th:value="${plainte.dateDepot != null ? #temporals.format(plainte.dateDepot, 'yyyy-MM-dd') : ''}" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="responsable">Responsable du traitement (facultatif)</label>
+                            <select id="responsable" name="responsable">
+                                <option value="">-- Non affecté --</option>
+                                <option th:each="u : ${utilisateurs}" th:value="${u.id}"
+                                        th:selected="${plainte.responsable != null and plainte.responsable.id == u.id}"
+                                        th:text="${u.nomComplet + ' (' + u.role.libelle + ')'}"></option>
+                            </select>
+                        </div>
+
+                        <div class="form-group full">
+                            <label for="objet">Objet de la plainte</label>
+                            <input type="text" id="objet" th:field="*{objet}" required>
+                            <div class="field-error" th:if="${#fields.hasErrors('objet')}" th:errors="*{objet}"></div>
+                        </div>
+
+                        <div class="form-group full">
+                            <label for="description">Description détaillée</label>
+                            <textarea id="description" th:field="*{description}" required></textarea>
+                            <div class="field-error" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></div>
+                        </div>
+
+                        <div class="form-group full">
+                            <label for="observation">Observation (facultative)</label>
+                            <textarea id="observation" th:field="*{observation}"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="actions-row">
+                        <button type="submit" class="btn btn-primary">Enregistrer</button>
+                        <a th:href="@{/plaintes}" class="btn btn-outline">Annuler</a>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+</div>
+</body>
+</html>

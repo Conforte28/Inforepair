@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: entete('Devis')}"></head>
+<body>
+<div class="app-wrapper">
+    <aside th:replace="~{fragments/layout :: menu}"></aside>
+    <div class="main-area">
+        <header th:replace="~{fragments/layout :: topbar('Gestion des devis')}"></header>
+        <main class="content">
+            <div th:replace="~{fragments/layout :: messages}"></div>
+
+            <div class="card">
+                <div class="toolbar">
+                    <form th:action="@{/devis}" method="get" class="filter-form" sec:authorize="hasAnyRole('ADMIN','AGENT')">
+                        <select name="statut">
+                            <option value="">Tous les statuts</option>
+                            <option th:each="s : ${statutsDevis}" th:value="${s}" th:text="${s.libelle}"
+                                    th:selected="${statutSelectionne == s}"></option>
+                        </select>
+                        <button type="submit" class="btn btn-secondary">Filtrer</button>
+                        <a th:href="@{/devis}" class="btn btn-outline">Réinitialiser</a>
+                    </form>
+                    <a th:href="@{/devis/nouveau}" class="btn btn-primary" sec:authorize="hasAnyRole('ADMIN','AGENT')">Nouveau devis</a>
+                </div>
+
+                <div class="table-responsive" th:if="${!#lists.isEmpty(devisListe)}">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Numéro</th>
+                            <th>Matériel</th>
+                            <th>Client</th>
+                            <th>Date</th>
+                            <th>Validité</th>
+                            <th>Montant total</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="d : ${devisListe}">
+                            <td><a th:href="@{/devis/{id}(id=${d.id})}" th:text="${d.numeroDevis}"></a></td>
+                            <td th:text="${d.materiel.numeroDossier + ' (' + d.materiel.marque + ')'}"></td>
+                            <td th:text="${d.client.nomComplet}"></td>
+                            <td th:text="${@formatUtils.date(d.dateCreation)}"></td>
+                            <td th:text="${@formatUtils.date(d.dateValidite)}"></td>
+                            <td th:text="${@formatUtils.fcfa(d.montantTotal)}"></td>
+                            <td>
+                                <span class="badge"
+                                      th:classappend="${d.statut.name() == 'ACCEPTE'} ? 'badge-succes' : (${d.statut.name() == 'REFUSE'} ? 'badge-erreur' : (${d.statut.name() == 'EXPIRE'} ? 'badge-neutre' : 'badge-alerte'))"
+                                      th:text="${d.statut.libelle}"></span>
+                            </td>
+                            <td class="actions-row">
+                                <a th:href="@{/devis/{id}(id=${d.id})}" class="btn btn-outline btn-sm">Détails</a>
+                                <a th:href="@{/devis/{id}/imprimer(id=${d.id})}" class="btn btn-outline btn-sm" target="_blank">Imprimer</a>
+                                <a th:if="${d.statut.name() == 'EN_ATTENTE'}" sec:authorize="hasAnyRole('ADMIN','AGENT')"
+                                   th:href="@{/devis/{id}/modifier(id=${d.id})}" class="btn btn-secondary btn-sm">Modifier</a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-muted" th:if="${#lists.isEmpty(devisListe)}">Aucun devis trouvé.</p>
+            </div>
+        </main>
+    </div>
+</div>
+</body>
+</html>

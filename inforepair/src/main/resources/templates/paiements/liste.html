@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: entete('Paiements')}"></head>
+<body>
+<div class="app-wrapper">
+    <aside th:replace="~{fragments/layout :: menu}"></aside>
+    <div class="main-area">
+        <header th:replace="~{fragments/layout :: topbar('Suivi des paiements')}"></header>
+        <main class="content">
+            <div th:replace="~{fragments/layout :: messages}"></div>
+
+            <div class="card">
+                <div class="toolbar">
+                    <span class="card-title">Historique des paiements</span>
+                    <a th:href="@{/paiements/nouveau}" class="btn btn-primary">Enregistrer un paiement</a>
+                </div>
+
+                <div class="table-responsive" th:if="${!#lists.isEmpty(paiements)}">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Numéro</th>
+                            <th>Date</th>
+                            <th>Client</th>
+                            <th>Réparation</th>
+                            <th>Montant</th>
+                            <th>Reste dû (réparation)</th>
+                            <th>Mode</th>
+                            <th>Référence</th>
+                            <th>Statut / Action</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="p : ${paiements}">
+                            <td th:text="${p.numeroPaiement}"></td>
+                            <td th:text="${@formatUtils.date(p.datePaiement)}"></td>
+                            <td><a th:href="@{/clients/{id}(id=${p.client.id})}" th:text="${p.client.nomComplet}"></a></td>
+                            <td><a th:href="@{/reparations/{id}(id=${p.reparation.id})}" th:text="${p.reparation.numeroReparation}"></a></td>
+                            <td><strong th:text="${@formatUtils.fcfa(p.montant)}"></strong></td>
+                            <td th:text="${@formatUtils.fcfa(restesParReparation[p.reparation.id])}"></td>
+                            <td th:text="${p.modePaiement.libelle}"></td>
+                            <td th:text="${p.reference != null and !#strings.isEmpty(p.reference) ? p.reference : '-'}"></td>
+                            <td>
+                                <div th:if="${p.annule}">
+                                    <span class="badge badge-erreur">Annulé</span>
+                                    <div class="text-muted" style="font-size:11px;" th:text="${p.motifAnnulation}"></div>
+                                </div>
+                                <div th:if="${!p.annule}">
+                                    <span class="badge badge-succes" style="margin-bottom:4px;">Valide</span>
+                                    <form th:action="@{/paiements/{id}/annuler(id=${p.id})}" method="post" style="display:flex; gap:4px; margin-top:4px;">
+                                        <input type="text" name="motif" required placeholder="Motif d'annulation" style="width:140px; padding:4px 6px; font-size:12px;">
+                                        <button type="submit" class="btn btn-danger btn-sm">Annuler</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-muted" th:if="${#lists.isEmpty(paiements)}">Aucun paiement enregistré.</p>
+            </div>
+        </main>
+    </div>
+</div>
+</body>
+</html>

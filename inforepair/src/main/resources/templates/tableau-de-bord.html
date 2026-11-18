@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: entete('Tableau de bord')}"></head>
+<body>
+<div class="app-wrapper">
+    <aside th:replace="~{fragments/layout :: menu}"></aside>
+    <div class="main-area">
+        <header th:replace="~{fragments/layout :: topbar('Tableau de bord')}"></header>
+        <main class="content">
+            <div th:replace="~{fragments/layout :: messages}"></div>
+
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-label">Total matériels enregistrés</div>
+                    <div class="kpi-value" th:text="${totalMateriels}">0</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">En attente de diagnostic</div>
+                    <div class="kpi-value" th:text="${materielsAttenteDiagnostic}">0</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Devis en attente de validation</div>
+                    <div class="kpi-value" th:text="${devisEnAttente}">0</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Réparations en cours</div>
+                    <div class="kpi-value" th:text="${reparationsEnCours}">0</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Réparations terminées</div>
+                    <div class="kpi-value" th:text="${reparationsTerminees}">0</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Matériels remis aux clients</div>
+                    <div class="kpi-value" th:text="${materielsRemis}">0</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Plaintes non résolues</div>
+                    <div class="kpi-value" th:text="${plaintesNonResolues}">0</div>
+                </div>
+                <div class="kpi-card accent">
+                    <div class="kpi-label">Devis acceptés (mois en cours)</div>
+                    <div class="kpi-value" th:text="${@formatUtils.fcfa(montantDevisAcceptesMois)}">0 FCFA</div>
+                </div>
+                <div class="kpi-card accent">
+                    <div class="kpi-label">Réparations payées (mois en cours)</div>
+                    <div class="kpi-value" th:text="${@formatUtils.fcfa(montantPaiementsMois)}">0 FCFA</div>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Derniers matériels enregistrés</h2>
+                        <a th:href="@{/materiels}" class="btn btn-outline btn-sm">Voir tout</a>
+                    </div>
+                    <div class="table-responsive" th:if="${!#lists.isEmpty(derniersMateriels)}">
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>Dossier</th>
+                                <th>Matériel</th>
+                                <th>Client</th>
+                                <th>État</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="m : ${derniersMateriels}">
+                                <td><a th:href="@{/materiels/{id}(id=${m.id})}" th:text="${m.numeroDossier}"></a></td>
+                                <td th:text="${m.marque + ' ' + m.modele}"></td>
+                                <td th:text="${m.client.nomComplet}"></td>
+                                <td><span class="badge" th:text="${m.etatActuel.libelle}"></span></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-muted" th:if="${#lists.isEmpty(derniersMateriels)}">Aucun matériel enregistré.</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Dernières réparations</h2>
+                        <a th:href="@{/reparations}" class="btn btn-outline btn-sm">Voir tout</a>
+                    </div>
+                    <div class="table-responsive" th:if="${!#lists.isEmpty(dernieresReparations)}">
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>Numéro</th>
+                                <th>Matériel</th>
+                                <th>Technicien</th>
+                                <th>Statut</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="r : ${dernieresReparations}">
+                                <td><a th:href="@{/reparations/{id}(id=${r.id})}" th:text="${r.numeroReparation}"></a></td>
+                                <td th:text="${r.materiel.numeroDossier}"></td>
+                                <td th:text="${r.technicien != null ? r.technicien.nomComplet : 'Non affecté'}"></td>
+                                <td><span class="badge" th:text="${r.statut.libelle}"></span></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-muted" th:if="${#lists.isEmpty(dernieresReparations)}">Aucune réparation enregistrée.</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Dernières plaintes</h2>
+                        <a th:href="@{/plaintes}" class="btn btn-outline btn-sm">Voir tout</a>
+                    </div>
+                    <div class="table-responsive" th:if="${!#lists.isEmpty(dernieresPlaintes)}">
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>Numéro</th>
+                                <th>Client</th>
+                                <th>Objet</th>
+                                <th>Statut</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="p : ${dernieresPlaintes}">
+                                <td><a th:href="@{/plaintes/{id}(id=${p.id})}" th:text="${p.numeroPlainte}"></a></td>
+                                <td th:text="${p.client.nomComplet}"></td>
+                                <td th:text="${p.objet}"></td>
+                                <td><span class="badge" th:text="${p.statut.libelle}"></span></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-muted" th:if="${#lists.isEmpty(dernieresPlaintes)}">Aucune plainte enregistrée.</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Dernières opérations réalisées</h2>
+                    </div>
+                    <div class="table-responsive" th:if="${!#lists.isEmpty(dernieresOperations)}">
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Dossier</th>
+                                <th>Nouvel état</th>
+                                <th>Par</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="h : ${dernieresOperations}">
+                                <td th:text="${@formatUtils.dateTime(h.dateModification)}"></td>
+                                <td><a th:href="@{/materiels/{id}(id=${h.materiel.id})}" th:text="${h.materiel.numeroDossier}"></a></td>
+                                <td th:text="${h.nouvelEtat.libelle}"></td>
+                                <td th:text="${h.utilisateur != null ? h.utilisateur.nomComplet : '-'}"></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-muted" th:if="${#lists.isEmpty(dernieresOperations)}">Aucune opération enregistrée.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+</body>
+</html>

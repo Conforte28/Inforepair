@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: entete(${client.id == null ? 'Nouveau client' : 'Modifier le client'})}"></head>
+<body>
+<div class="app-wrapper">
+    <aside th:replace="~{fragments/layout :: menu}"></aside>
+    <div class="main-area">
+        <header th:replace="~{fragments/layout :: topbar(${client.id == null ? 'Nouveau client' : 'Modifier le client'})}"></header>
+        <main class="content">
+            <div th:replace="~{fragments/layout :: messages}"></div>
+
+            <div class="card">
+                <form th:action="@{/clients/enregistrer}" th:object="${client}" method="post">
+                    <input type="hidden" th:field="*{id}">
+                    <input type="hidden" th:field="*{codeClient}">
+                    <input type="hidden" th:field="*{actif}">
+                    <input type="hidden" name="dateEnregistrement" th:value="${client.dateEnregistrement != null ? #temporals.format(client.dateEnregistrement, 'yyyy-MM-dd') : ''}">
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="nomComplet">Nom et prénom</label>
+                            <input type="text" id="nomComplet" th:field="*{nomComplet}" required>
+                            <div class="field-error" th:if="${#fields.hasErrors('nomComplet')}" th:errors="*{nomComplet}"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="telephone">Numéro de téléphone</label>
+                            <input type="text" id="telephone" th:field="*{telephone}" required placeholder="Ex: +229 01 97 00 00 00">
+                            <div class="field-error" th:if="${#fields.hasErrors('telephone')}" th:errors="*{telephone}"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email">Adresse électronique (facultative)</label>
+                            <input type="email" id="email" th:field="*{email}">
+                            <div class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="adresseCommune">Adresse ou commune (facultative)</label>
+                            <input type="text" id="adresseCommune" th:field="*{adresseCommune}" placeholder="Ex: Cotonou - Akpakpa">
+                        </div>
+
+                        <div class="form-group full">
+                            <label for="observation">Observation (facultative)</label>
+                            <textarea id="observation" th:field="*{observation}"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="actions-row">
+                        <button type="submit" class="btn btn-primary">Enregistrer</button>
+                        <a th:href="@{/clients}" class="btn btn-outline">Annuler</a>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: entete(${devis.id == null ? 'Nouveau devis' : 'Modifier le devis'})}"></head>
+<body>
+<div class="app-wrapper">
+    <aside th:replace="~{fragments/layout :: menu}"></aside>
+    <div class="main-area">
+        <header th:replace="~{fragments/layout :: topbar(${devis.id == null ? 'Nouveau devis' : 'Modifier le devis ' + devis.numeroDevis})}"></header>
+        <main class="content">
+            <div th:replace="~{fragments/layout :: messages}"></div>
+
+            <div class="card">
+                <form th:action="@{/devis/enregistrer}" th:object="${devis}" method="post">
+                    <input type="hidden" th:field="*{id}">
+                    <input type="hidden" th:field="*{numeroDevis}">
+                    <input type="hidden" name="devisParent" th:value="${devis.devisParent != null ? devis.devisParent.id : ''}">
+
+                    <div class="form-grid">
+                        <div class="form-group full">
+                            <label for="materiel">Matériel concerné</label>
+                            <select id="materiel" th:field="*{materiel.id}" required>
+                                <option value="">-- Sélectionner un matériel --</option>
+                                <option th:each="m : ${materiels}" th:value="${m.id}"
+                                        th:text="${m.numeroDossier + ' - ' + m.marque + ' ' + m.modele + ' (' + m.client.nomComplet + ')'}"></option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="dateCreation">Date de création</label>
+                            <input type="date" id="dateCreation" name="dateCreation"
+                                   th:value="${devis.dateCreation != null ? #temporals.format(devis.dateCreation, 'yyyy-MM-dd') : ''}" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="dateValidite">Date de validité</label>
+                            <input type="date" id="dateValidite" name="dateValidite"
+                                   th:value="${devis.dateValidite != null ? #temporals.format(devis.dateValidite, 'yyyy-MM-dd') : ''}" required>
+                        </div>
+
+                        <div class="form-group full">
+                            <label for="diagnosticTechnique">Diagnostic technique</label>
+                            <textarea id="diagnosticTechnique" th:field="*{diagnosticTechnique}" required></textarea>
+                        </div>
+                    </div>
+
+                    <div class="card-header" style="margin-top:10px;">
+                        <h2 class="card-title">Prestations détaillées</h2>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="ajouterLigneDevis()">Ajouter une prestation</button>
+                    </div>
+
+                    <div class="table-responsive" style="margin-bottom:16px;">
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>Désignation</th>
+                                <th style="width:120px;">Quantité</th>
+                                <th style="width:180px;">Prix unitaire (FCFA)</th>
+                                <th style="width:110px;">Action</th>
+                            </tr>
+                            </thead>
+                            <tbody id="lignes-devis-body">
+                            <tr th:each="l : *{lignes}">
+                                <td><input type="text" name="designations" th:value="${l.designation}" placeholder="Ex: Remplacement batterie"></td>
+                                <td><input type="number" name="quantites" min="1" th:value="${l.quantite != null ? l.quantite : 1}" oninput="calculerTotalDevis()"></td>
+                                <td><input type="number" name="prixUnitaires" min="0" step="1" th:value="${l.prixUnitaire != null ? l.prixUnitaire.intValue() : 0}" oninput="calculerTotalDevis()"></td>
+                                <td><button type="button" class="btn btn-outline btn-sm" onclick="supprimerLigneDevis(this)">Retirer</button></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="coutMainOeuvre">Coût de la main-d'œuvre (FCFA)</label>
+                            <input type="number" id="coutMainOeuvre" th:field="*{coutMainOeuvre}" min="0" step="1" required oninput="calculerTotalDevis()">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="coutPieces">Coût complémentaire des pièces (FCFA)</label>
+                            <input type="number" id="coutPieces" th:field="*{coutPieces}" min="0" step="1" required oninput="calculerTotalDevis()">
+                        </div>
+
+                        <div class="form-group full">
+                            <label for="observation">Observation (facultative)</label>
+                            <textarea id="observation" th:field="*{observation}"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info" style="display:flex; justify-content:space-between; align-items:center;">
+                        <span>Montant total estimé :</span>
+                        <strong id="apercu-total-devis" style="font-size:16px;">0 FCFA</strong>
+                    </div>
+
+                    <div class="actions-row">
+                        <button type="submit" class="btn btn-primary">Enregistrer le devis</button>
+                        <a th:href="@{/devis}" class="btn btn-outline">Annuler</a>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+</div>
+<script>
+function ajouterLigneDevis() {
+    var tbody = document.getElementById('lignes-devis-body');
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td><input type="text" name="designations" placeholder="Désignation de la prestation"></td>' +
+        '<td><input type="number" name="quantites" min="1" value="1" oninput="calculerTotalDevis()"></td>' +
+        '<td><input type="number" name="prixUnitaires" min="0" step="1" value="0" oninput="calculerTotalDevis()"></td>' +
+        '<td><button type="button" class="btn btn-outline btn-sm" onclick="supprimerLigneDevis(this)">Retirer</button></td>';
+    tbody.appendChild(tr);
+}
+
+function supprimerLigneDevis(btn) {
+    var tbody = document.getElementById('lignes-devis-body');
+    if (tbody.children.length > 1) {
+        btn.closest('tr').remove();
+        calculerTotalDevis();
+    }
+}
+
+function calculerTotalDevis() {
+    var qtes = document.getElementsByName('quantites');
+    var prix = document.getElementsByName('prixUnitaires');
+    var total = 0;
+    for (var i = 0; i < qtes.length; i++) {
+        var q = parseFloat(qtes[i].value) || 0;
+        var p = parseFloat(prix[i].value) || 0;
+        total += q * p;
+    }
+    var mo = parseFloat(document.getElementById('coutMainOeuvre').value) || 0;
+    var pieces = parseFloat(document.getElementById('coutPieces').value) || 0;
+    total += mo + pieces;
+    document.getElementById('apercu-total-devis').textContent = Math.round(total).toLocaleString('fr-FR') + ' FCFA';
+}
+
+document.addEventListener('DOMContentLoaded', calculerTotalDevis);
+</script>
+</body>
+</html>

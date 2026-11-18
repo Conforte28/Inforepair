@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: entete('Suivi des matériels')}"></head>
+<body>
+<div class="app-wrapper">
+    <aside th:replace="~{fragments/layout :: menu}"></aside>
+    <div class="main-area">
+        <header th:replace="~{fragments/layout :: topbar('Suivi des matériels')}"></header>
+        <main class="content">
+            <div th:replace="~{fragments/layout :: messages}"></div>
+
+            <div class="card">
+                <div class="toolbar">
+                    <form th:action="@{/materiels}" method="get" class="filter-form">
+                        <input type="text" name="q" th:value="${q}" placeholder="N° dossier, marque, modèle, client...">
+                        <select name="type">
+                            <option value="">Tous les types</option>
+                            <option th:each="t : ${typesMateriel}" th:value="${t}" th:text="${t.libelle}"
+                                    th:selected="${typeSelectionne == t}"></option>
+                        </select>
+                        <select name="etat">
+                            <option value="">Tous les états</option>
+                            <option th:each="e : ${etatsMateriel}" th:value="${e}" th:text="${e.libelle}"
+                                    th:selected="${etatSelectionne == e}"></option>
+                        </select>
+                        <button type="submit" class="btn btn-secondary">Filtrer</button>
+                        <a th:href="@{/materiels}" class="btn btn-outline">Réinitialiser</a>
+                    </form>
+                    <a th:href="@{/materiels/nouveau}" class="btn btn-primary" sec:authorize="hasAnyRole('ADMIN','AGENT')">Nouveau matériel</a>
+                </div>
+
+                <div class="table-responsive" th:if="${!#lists.isEmpty(materiels)}">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Dossier</th>
+                            <th>Client</th>
+                            <th>Type</th>
+                            <th>Marque / Modèle</th>
+                            <th>Date de dépôt</th>
+                            <th>État actuel</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="m : ${materiels}">
+                            <td><a th:href="@{/materiels/{id}(id=${m.id})}" th:text="${m.numeroDossier}"></a></td>
+                            <td th:text="${m.client.nomComplet}"></td>
+                            <td th:text="${m.typeMateriel.libelle}"></td>
+                            <td th:text="${m.marque + ' ' + m.modele}"></td>
+                            <td th:text="${@formatUtils.date(m.dateDepot)}"></td>
+                            <td><span class="badge" th:text="${m.etatActuel.libelle}"></span></td>
+                            <td class="actions-row">
+                                <a th:href="@{/materiels/{id}(id=${m.id})}" class="btn btn-outline btn-sm">Détails</a>
+                                <a th:href="@{/materiels/{id}/modifier(id=${m.id})}" class="btn btn-secondary btn-sm"
+                                   sec:authorize="hasAnyRole('ADMIN','AGENT')">Modifier</a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-muted" th:if="${#lists.isEmpty(materiels)}">Aucun matériel trouvé.</p>
+            </div>
+        </main>
+    </div>
+</div>
+</body>
+</html>

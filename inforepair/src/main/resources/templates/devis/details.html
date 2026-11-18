@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: entete('Détails du devis')}"></head>
+<body>
+<div class="app-wrapper">
+    <aside th:replace="~{fragments/layout :: menu}"></aside>
+    <div class="main-area">
+        <header th:replace="~{fragments/layout :: topbar('Devis : ' + ${devis.numeroDevis})}"></header>
+        <main class="content">
+            <div th:replace="~{fragments/layout :: messages}"></div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title" th:text="${devis.numeroDevis}"></h2>
+                    <div class="actions-row">
+                        <a th:href="@{/devis/{id}/imprimer(id=${devis.id})}" class="btn btn-outline btn-sm" target="_blank">Imprimer</a>
+                        <a th:if="${devis.statut.name() == 'EN_ATTENTE'}" sec:authorize="hasAnyRole('ADMIN','AGENT')"
+                           th:href="@{/devis/{id}/modifier(id=${devis.id})}" class="btn btn-secondary btn-sm">Modifier</a>
+                        <form th:if="${devis.statut.name() == 'EN_ATTENTE'}" sec:authorize="hasAnyRole('ADMIN','AGENT')"
+                              th:action="@{/devis/{id}/accepter(id=${devis.id})}" method="post" class="inline-form">
+                            <button type="submit" class="btn btn-success btn-sm">Accepter le devis</button>
+                        </form>
+                        <form th:if="${devis.statut.name() == 'EN_ATTENTE'}" sec:authorize="hasAnyRole('ADMIN','AGENT')"
+                              th:action="@{/devis/{id}/refuser(id=${devis.id})}" method="post" class="inline-form">
+                            <button type="submit" class="btn btn-danger btn-sm">Refuser le devis</button>
+                        </form>
+                        <form th:if="${devis.statut.name() == 'EN_ATTENTE'}" sec:authorize="hasAnyRole('ADMIN','AGENT')"
+                              th:action="@{/devis/{id}/expirer(id=${devis.id})}" method="post" class="inline-form">
+                            <button type="submit" class="btn btn-outline btn-sm">Marquer expiré</button>
+                        </form>
+                        <a th:if="${devis.statut.name() == 'ACCEPTE'}" sec:authorize="hasAnyRole('ADMIN','AGENT')"
+                           th:href="@{/reparations/nouveau(devisId=${devis.id})}" class="btn btn-primary btn-sm">Démarrer une réparation</a>
+                        <form th:if="${devis.statut.name() != 'EN_ATTENTE'}" sec:authorize="hasAnyRole('ADMIN','AGENT')"
+                              th:action="@{/devis/{id}/nouvelle-version(id=${devis.id})}" method="post" class="inline-form">
+                            <button type="submit" class="btn btn-secondary btn-sm">Créer une nouvelle version</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="info-list">
+                    <div>
+                        <div class="info-item-label">Statut</div>
+                        <div class="info-item-value"><span class="badge" th:text="${devis.statut.libelle}"></span></div>
+                    </div>
+                    <div>
+                        <div class="info-item-label">Client</div>
+                        <div class="info-item-value" th:text="${devis.client.nomComplet + ' (' + devis.client.telephone + ')'}"></div>
+                    </div>
+                    <div>
+                        <div class="info-item-label">Matériel</div>
+                        <div class="info-item-value">
+                            <a th:href="@{/materiels/{id}(id=${devis.materiel.id})}"
+                               th:text="${devis.materiel.numeroDossier + ' - ' + devis.materiel.marque + ' ' + devis.materiel.modele}"></a>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="info-item-label">Date de création</div>
+                        <div class="info-item-value" th:text="${@formatUtils.date(devis.dateCreation)}"></div>
+                    </div>
+                    <div>
+                        <div class="info-item-label">Date de validité</div>
+                        <div class="info-item-value" th:text="${@formatUtils.date(devis.dateValidite)}"></div>
+                    </div>
+                    <div th:if="${devis.devisParent != null}">
+                        <div class="info-item-label">Issu du devis</div>
+                        <div class="info-item-value">
+                            <a th:href="@{/devis/{id}(id=${devis.devisParent.id})}" th:text="${devis.devisParent.numeroDevis}"></a>
+                        </div>
+                    </div>
+                    <div style="grid-column: 1 / -1;">
+                        <div class="info-item-label">Diagnostic technique</div>
+                        <div class="info-item-value" th:text="${devis.diagnosticTechnique}"></div>
+                    </div>
+                    <div style="grid-column: 1 / -1;" th:if="${devis.observation != null and !#strings.isEmpty(devis.observation)}">
+                        <div class="info-item-label">Observation</div>
+                        <div class="info-item-value" th:text="${devis.observation}"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><h2 class="card-title">Détail financier</h2></div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Désignation</th>
+                            <th class="text-right">Quantité</th>
+                            <th class="text-right">Prix unitaire</th>
+                            <th class="text-right">Sous-total</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="l : ${devis.lignes}">
+                            <td th:text="${l.designation}"></td>
+                            <td class="text-right" th:text="${l.quantite}"></td>
+                            <td class="text-right" th:text="${@formatUtils.fcfa(l.prixUnitaire)}"></td>
+                            <td class="text-right" th:text="${@formatUtils.fcfa(l.sousTotal)}"></td>
+                        </tr>
+                        <tr>
+                            <td colspan="3"><strong>Main-d'œuvre</strong></td>
+                            <td class="text-right" th:text="${@formatUtils.fcfa(devis.coutMainOeuvre)}"></td>
+                        </tr>
+                        <tr>
+                            <td colspan="3"><strong>Coût complémentaire des pièces</strong></td>
+                            <td class="text-right" th:text="${@formatUtils.fcfa(devis.coutPieces)}"></td>
+                        </tr>
+                        <tr>
+                            <td colspan="3"><strong style="font-size:15px;">Montant total</strong></td>
+                            <td class="text-right"><strong style="font-size:15px;" th:text="${@formatUtils.fcfa(devis.montantTotal)}"></strong></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+</body>
+</html>

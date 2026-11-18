@@ -1,0 +1,37 @@
+databases:
+  - name: inforepair-db
+    databaseName: inforepair
+    user: inforepair
+    plan: free
+
+services:
+  - type: web
+    name: inforepair
+    runtime: docker
+    plan: free
+    healthCheckPath: /login
+    envVars:
+      - key: DB_HOST
+        fromDatabase:
+          name: inforepair-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: inforepair-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: inforepair-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: inforepair-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: inforepair-db
+          property: password
+      - key: DEMO_MODE
+        value: "true"
+      - key: DEMO_PASSWORD
+        sync: false

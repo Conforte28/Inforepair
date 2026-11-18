@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: entete('Utilisateurs')}"></head>
+<body>
+<div class="app-wrapper">
+    <aside th:replace="~{fragments/layout :: menu}"></aside>
+    <div class="main-area">
+        <header th:replace="~{fragments/layout :: topbar('Gestion des utilisateurs')}"></header>
+        <main class="content">
+            <div th:replace="~{fragments/layout :: messages}"></div>
+
+            <div class="card">
+                <div class="toolbar">
+                    <span class="card-title">Comptes d'accès</span>
+                    <a th:href="@{/utilisateurs/nouveau}" class="btn btn-primary">Nouvel utilisateur</a>
+                </div>
+
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Nom complet</th>
+                            <th>Adresse électronique</th>
+                            <th>Téléphone</th>
+                            <th>Rôle</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="u : ${utilisateurs}">
+                            <td th:text="${u.nomComplet}"></td>
+                            <td th:text="${u.email}"></td>
+                            <td th:text="${u.telephone != null ? u.telephone : '-'}"></td>
+                            <td><span class="badge" th:text="${u.role.libelle}"></span></td>
+                            <td>
+                                <span class="badge" th:classappend="${u.actif} ? 'badge-succes' : 'badge-erreur'"
+                                      th:text="${u.actif} ? 'Actif' : 'Désactivé'"></span>
+                            </td>
+                            <td class="actions-row">
+                                <a th:href="@{/utilisateurs/{id}/modifier(id=${u.id})}" class="btn btn-secondary btn-sm">Modifier</a>
+                                <form th:action="@{/utilisateurs/{id}/basculer-actif(id=${u.id})}" method="post" class="inline-form">
+                                    <button type="submit" class="btn btn-outline btn-sm"
+                                            th:text="${u.actif} ? 'Désactiver' : 'Activer'"></button>
+                                </form>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+</body>
+</html>

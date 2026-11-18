@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: entete('Plaintes et réclamations')}"></head>
+<body>
+<div class="app-wrapper">
+    <aside th:replace="~{fragments/layout :: menu}"></aside>
+    <div class="main-area">
+        <header th:replace="~{fragments/layout :: topbar('Plaintes et réclamations')}"></header>
+        <main class="content">
+            <div th:replace="~{fragments/layout :: messages}"></div>
+
+            <div class="card">
+                <div class="toolbar">
+                    <form th:action="@{/plaintes}" method="get" class="filter-form">
+                        <input type="text" name="q" th:value="${q}" placeholder="Numéro, objet ou client...">
+                        <select name="statut">
+                            <option value="">Tous les statuts</option>
+                            <option th:each="s : ${statutsPlainte}" th:value="${s}" th:text="${s.libelle}"
+                                    th:selected="${statutSelectionne == s}"></option>
+                        </select>
+                        <button type="submit" class="btn btn-secondary">Rechercher</button>
+                        <a th:href="@{/plaintes}" class="btn btn-outline">Réinitialiser</a>
+                    </form>
+                    <a th:href="@{/plaintes/nouveau}" class="btn btn-primary" sec:authorize="hasAnyRole('ADMIN','AGENT')">Nouvelle plainte</a>
+                </div>
+
+                <div class="table-responsive" th:if="${!#lists.isEmpty(plaintes)}">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Numéro</th>
+                            <th>Date</th>
+                            <th>Client</th>
+                            <th>Type</th>
+                            <th>Objet</th>
+                            <th>Responsable</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="p : ${plaintes}">
+                            <td><a th:href="@{/plaintes/{id}(id=${p.id})}" th:text="${p.numeroPlainte}"></a></td>
+                            <td th:text="${@formatUtils.date(p.dateDepot)}"></td>
+                            <td th:text="${p.client.nomComplet}"></td>
+                            <td th:text="${p.typePlainte.libelle}"></td>
+                            <td th:text="${p.objet}"></td>
+                            <td th:text="${p.responsable != null ? p.responsable.nomComplet : 'Non affecté'}"></td>
+                            <td><span class="badge" th:text="${p.statut.libelle}"></span></td>
+                            <td class="actions-row">
+                                <a th:href="@{/plaintes/{id}(id=${p.id})}" class="btn btn-outline btn-sm">Détails</a>
+                                <a th:if="${p.statut.name() != 'CLOTUREE'}" sec:authorize="hasAnyRole('ADMIN','AGENT')"
+                                   th:href="@{/plaintes/{id}/modifier(id=${p.id})}" class="btn btn-secondary btn-sm">Modifier</a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-muted" th:if="${#lists.isEmpty(plaintes)}">Aucune plainte trouvée.</p>
+            </div>
+        </main>
+    </div>
+</div>
+</body>
+</html>

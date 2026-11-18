@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:fragment="entete(titre)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${titre} + ' - INFOREPAIR'">INFOREPAIR</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<aside th:fragment="menu" class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <div class="sidebar-brand">INFOREPAIR</div>
+        <div class="sidebar-subtitle" th:text="${entreprise.nomEntreprise}">INFOREPAIR</div>
+    </div>
+    <nav class="sidebar-nav">
+        <a th:href="@{/}" class="nav-link" th:classappend="${menuActif == 'tableau-de-bord'} ? 'actif' : ''">Tableau de bord</a>
+        <a th:href="@{/clients}" class="nav-link" sec:authorize="hasAnyRole('ADMIN','AGENT')" th:classappend="${menuActif == 'clients'} ? 'actif' : ''">Clients</a>
+        <a th:href="@{/materiels}" class="nav-link" th:classappend="${menuActif == 'materiels'} ? 'actif' : ''">Suivi des matériels</a>
+        <a th:href="@{/devis}" class="nav-link" th:classappend="${menuActif == 'devis'} ? 'actif' : ''">Devis</a>
+        <a th:href="@{/reparations}" class="nav-link" th:classappend="${menuActif == 'reparations'} ? 'actif' : ''">Réparations</a>
+        <a th:href="@{/plaintes}" class="nav-link" th:classappend="${menuActif == 'plaintes'} ? 'actif' : ''">Plaintes</a>
+        <a th:href="@{/paiements}" class="nav-link" sec:authorize="hasAnyRole('ADMIN','AGENT')" th:classappend="${menuActif == 'paiements'} ? 'actif' : ''">Paiements</a>
+        <a th:href="@{/utilisateurs}" class="nav-link" sec:authorize="hasRole('ADMIN')" th:classappend="${menuActif == 'utilisateurs'} ? 'actif' : ''">Utilisateurs</a>
+        <a th:href="@{/parametres}" class="nav-link" th:classappend="${menuActif == 'parametres'} ? 'actif' : ''">Paramètres</a>
+    </nav>
+    <div class="sidebar-footer" th:if="${utilisateurConnecte != null}">
+        <div class="user-info-nom" th:text="${utilisateurConnecte.nomComplet}">Utilisateur</div>
+        <div class="user-info-role" th:text="${utilisateurConnecte.role.libelle}">Rôle</div>
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" class="btn btn-outline btn-sm btn-block">Se déconnecter</button>
+        </form>
+    </div>
+</aside>
+
+<header th:fragment="topbar(titre)" class="topbar">
+    <div class="topbar-left">
+        <button type="button" class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('ouverte')">Menu</button>
+        <h1 class="page-title" th:text="${titre}">Titre</h1>
+    </div>
+    <div class="topbar-entreprise">
+        <div th:text="${entreprise.nomEntreprise}">INFOREPAIR</div>
+        <div th:if="${entreprise.commune != null and !#strings.isEmpty(entreprise.commune)}" th:text="${entreprise.commune}">Cotonou</div>
+    </div>
+</header>
+
+<div th:fragment="messages">
+    <div th:if="${succes}" class="alert alert-succes" th:text="${succes}"></div>
+    <div th:if="${erreur}" class="alert alert-erreur" th:text="${erreur}"></div>
+</div>
+
+</body>
+</html>

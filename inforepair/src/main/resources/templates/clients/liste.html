@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: entete('Clients')}"></head>
+<body>
+<div class="app-wrapper">
+    <aside th:replace="~{fragments/layout :: menu}"></aside>
+    <div class="main-area">
+        <header th:replace="~{fragments/layout :: topbar('Gestion des clients')}"></header>
+        <main class="content">
+            <div th:replace="~{fragments/layout :: messages}"></div>
+
+            <div class="card">
+                <div class="toolbar">
+                    <form th:action="@{/clients}" method="get" class="filter-form">
+                        <input type="text" name="q" th:value="${q}" placeholder="Nom, téléphone, email ou code...">
+                        <button type="submit" class="btn btn-secondary">Rechercher</button>
+                        <a th:href="@{/clients}" class="btn btn-outline" th:if="${q != null and !#strings.isEmpty(q)}">Réinitialiser</a>
+                    </form>
+                    <a th:href="@{/clients/nouveau}" class="btn btn-primary">Nouveau client</a>
+                </div>
+
+                <div class="table-responsive" th:if="${!#lists.isEmpty(clients)}">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Nom et prénom</th>
+                            <th>Téléphone</th>
+                            <th>Adresse / Commune</th>
+                            <th>Date d'enregistrement</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="c : ${clients}">
+                            <td th:text="${c.codeClient}"></td>
+                            <td><a th:href="@{/clients/{id}(id=${c.id})}" th:text="${c.nomComplet}"></a></td>
+                            <td th:text="${c.telephone}"></td>
+                            <td th:text="${c.adresseCommune != null ? c.adresseCommune : '-'}"></td>
+                            <td th:text="${@formatUtils.date(c.dateEnregistrement)}"></td>
+                            <td>
+                                <span class="badge" th:classappend="${c.actif} ? 'badge-succes' : 'badge-neutre'"
+                                      th:text="${c.actif} ? 'Actif' : 'Désactivé'"></span>
+                            </td>
+                            <td class="actions-row">
+                                <a th:href="@{/clients/{id}(id=${c.id})}" class="btn btn-outline btn-sm">Détails</a>
+                                <a th:href="@{/clients/{id}/modifier(id=${c.id})}" class="btn btn-secondary btn-sm">Modifier</a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-muted" th:if="${#lists.isEmpty(clients)}">Aucun client enregistré.</p>
+            </div>
+        </main>
+    </div>
+</div>
+</body>
+</html>

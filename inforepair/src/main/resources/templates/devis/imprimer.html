@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: entete('Impression devis ' + ${devis.numeroDevis})}"></head>
+<body>
+<div class="print-sheet">
+    <div class="no-print" style="margin-bottom: 16px; display:flex; justify-content:space-between;">
+        <a th:href="@{/devis/{id}(id=${devis.id})}" class="btn btn-outline btn-sm">Retour au devis</a>
+        <button type="button" class="btn btn-primary btn-sm" onclick="window.print()">Imprimer ce devis</button>
+    </div>
+
+    <div class="print-header">
+        <div>
+            <h1 style="color:#16466A; font-size:22px;" th:text="${entreprise.nomEntreprise}">INFOREPAIR</h1>
+            <p class="text-muted" th:if="${entreprise.commune != null}" th:text="${entreprise.commune}"></p>
+            <p class="text-muted" th:if="${entreprise.adresse != null}" th:text="${entreprise.adresse}"></p>
+            <p class="text-muted" th:if="${entreprise.telephone != null}" th:text="'Tél : ' + ${entreprise.telephone}"></p>
+            <p class="text-muted" th:if="${entreprise.email != null}" th:text="${entreprise.email}"></p>
+        </div>
+        <div style="text-align:right;">
+            <h2 style="color:#38A9E8; font-size:20px;">DEVIS DE RÉPARATION</h2>
+            <p><strong th:text="${devis.numeroDevis}"></strong></p>
+            <p th:text="'Date : ' + ${@formatUtils.date(devis.dateCreation)}"></p>
+            <p th:text="'Valable jusqu\'au : ' + ${@formatUtils.date(devis.dateValidite)}"></p>
+            <p th:text="'Statut : ' + ${devis.statut.libelle}"></p>
+        </div>
+    </div>
+
+    <div class="info-list" style="margin-bottom:20px;">
+        <div>
+            <div class="info-item-label">Client</div>
+            <div class="info-item-value" th:text="${devis.client.nomComplet}"></div>
+            <div class="text-muted" th:text="${devis.client.telephone}"></div>
+            <div class="text-muted" th:if="${devis.client.adresseCommune != null}" th:text="${devis.client.adresseCommune}"></div>
+        </div>
+        <div>
+            <div class="info-item-label">Matériel concerné</div>
+            <div class="info-item-value" th:text="${devis.materiel.numeroDossier + ' - ' + devis.materiel.typeMateriel.libelle}"></div>
+            <div class="text-muted" th:text="${devis.materiel.marque + ' ' + devis.materiel.modele}"></div>
+        </div>
+    </div>
+
+    <div style="margin-bottom:18px;">
+        <div class="info-item-label">Diagnostic technique</div>
+        <p th:text="${devis.diagnosticTechnique}"></p>
+    </div>
+
+    <table>
+        <thead>
+        <tr>
+            <th>Désignation</th>
+            <th class="text-right">Quantité</th>
+            <th class="text-right">Prix unitaire</th>
+            <th class="text-right">Sous-total</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="l : ${devis.lignes}">
+            <td th:text="${l.designation}"></td>
+            <td class="text-right" th:text="${l.quantite}"></td>
+            <td class="text-right" th:text="${@formatUtils.fcfa(l.prixUnitaire)}"></td>
+            <td class="text-right" th:text="${@formatUtils.fcfa(l.sousTotal)}"></td>
+        </tr>
+        <tr>
+            <td colspan="3">Main-d'œuvre</td>
+            <td class="text-right" th:text="${@formatUtils.fcfa(devis.coutMainOeuvre)}"></td>
+        </tr>
+        <tr>
+            <td colspan="3">Pièces complémentaires</td>
+            <td class="text-right" th:text="${@formatUtils.fcfa(devis.coutPieces)}"></td>
+        </tr>
+        <tr>
+            <td colspan="3"><strong>TOTAL À PAYER</strong></td>
+            <td class="text-right"><strong th:text="${@formatUtils.fcfa(devis.montantTotal)}"></strong></td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div style="margin-top:36px; display:flex; justify-content:space-between;">
+        <div>
+            <p><strong>Cachet et signature de l'entreprise</strong></p>
+        </div>
+        <div style="text-align:right;">
+            <p><strong>Bon pour accord du client</strong></p>
+            <p class="text-muted" style="margin-top:24px;">Date et signature</p>
+        </div>
+    </div>
+</div>
+</body>
+</html>

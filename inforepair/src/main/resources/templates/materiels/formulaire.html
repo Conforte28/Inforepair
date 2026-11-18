@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: entete(${materiel.id == null ? 'Enregistrer un matériel' : 'Modifier un matériel'})}"></head>
+<body>
+<div class="app-wrapper">
+    <aside th:replace="~{fragments/layout :: menu}"></aside>
+    <div class="main-area">
+        <header th:replace="~{fragments/layout :: topbar(${materiel.id == null ? 'Enregistrer un matériel' : 'Modifier le matériel'})}"></header>
+        <main class="content">
+            <div th:replace="~{fragments/layout :: messages}"></div>
+
+            <div class="card">
+                <form th:action="@{/materiels/enregistrer}" th:object="${materiel}" method="post">
+                    <input type="hidden" th:field="*{id}">
+                    <input type="hidden" th:field="*{numeroDossier}">
+                    <input type="hidden" th:field="*{etatActuel}">
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="client">Client propriétaire</label>
+                            <select id="client" th:field="*{client.id}" required>
+                                <option value="">-- Sélectionner un client --</option>
+                                <option th:each="c : ${clients}" th:value="${c.id}"
+                                        th:text="${c.nomComplet + ' (' + c.telephone + ')'}"></option>
+                            </select>
+                            <div class="field-error" th:if="${#fields.hasErrors('client')}" th:errors="*{client}"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="typeMateriel">Type de matériel</label>
+                            <select id="typeMateriel" th:field="*{typeMateriel}" required>
+                                <option value="">-- Sélectionner un type --</option>
+                                <option th:each="t : ${typesMateriel}" th:value="${t}" th:text="${t.libelle}"></option>
+                            </select>
+                            <div class="field-error" th:if="${#fields.hasErrors('typeMateriel')}" th:errors="*{typeMateriel}"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="marque">Marque</label>
+                            <input type="text" id="marque" th:field="*{marque}" required placeholder="Ex: HP, Dell, Lenovo, Epson">
+                            <div class="field-error" th:if="${#fields.hasErrors('marque')}" th:errors="*{marque}"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="modele">Modèle</label>
+                            <input type="text" id="modele" th:field="*{modele}" required placeholder="Ex: EliteBook 840 G6">
+                            <div class="field-error" th:if="${#fields.hasErrors('modele')}" th:errors="*{modele}"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="numeroSerie">Numéro de série (facultatif)</label>
+                            <input type="text" id="numeroSerie" th:field="*{numeroSerie}">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="dateDepot">Date de dépôt</label>
+                            <input type="date" id="dateDepot" name="dateDepot"
+                                   th:value="${materiel.dateDepot != null ? #temporals.format(materiel.dateDepot, 'yyyy-MM-dd') : ''}" required>
+                            <div class="field-error" th:if="${#fields.hasErrors('dateDepot')}" th:errors="*{dateDepot}"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="accessoiresDeposes">Accessoires déposés (facultatifs)</label>
+                            <input type="text" id="accessoiresDeposes" th:field="*{accessoiresDeposes}" placeholder="Ex: Chargeur, sacoche, câble USB">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="etatPhysique">État physique au dépôt</label>
+                            <input type="text" id="etatPhysique" th:field="*{etatPhysique}" placeholder="Ex: Rayures sur le capot, charnière desserrée">
+                        </div>
+
+                        <div class="form-group full">
+                            <label for="descriptionProbleme">Description du problème signalé</label>
+                            <input type="text" id="panneRapide" list="pannes-courantes"
+                                   placeholder="Choisir une panne courante pour préremplir ou saisir directement ci-dessous"
+                                   onchange="if(this.value){var d=document.getElementById('descriptionProbleme'); if(!d.value){d.value=this.value;} else if(d.value.indexOf(this.value)===-1){d.value=d.value + ' - ' + this.value;}}">
+                            <datalist id="pannes-courantes">
+                                <option th:each="p : ${pannesCourantes}" th:value="${p}"></option>
+                            </datalist>
+                            <textarea id="descriptionProbleme" th:field="*{descriptionProbleme}" required style="margin-top:8px;"></textarea>
+                            <div class="field-error" th:if="${#fields.hasErrors('descriptionProbleme')}" th:errors="*{descriptionProbleme}"></div>
+                        </div>
+
+                        <div class="form-group full">
+                            <div class="alert alert-alerte" style="margin-bottom:8px;">
+                                Confidentialité : ne demandez pas le mot de passe de session du client sauf nécessité absolue. Aucun mot de passe de session n'est conservé en clair dans l'application.
+                            </div>
+                            <label style="display:flex; align-items:center; gap:8px; font-weight:600;">
+                                <input type="checkbox" th:field="*{sessionCodeFourni}" style="width:auto;">
+                                Accès de session requis (compte invité ou présence du client prévue)
+                            </label>
+                            <input type="text" th:field="*{noteAccesSession}" style="margin-top:8px;"
+                                   placeholder="Indication non sensible (facultatif, sans mot de passe en clair)">
+                        </div>
+
+                        <div class="form-group full">
+                            <label for="observation">Observation</label>
+                            <textarea id="observation" th:field="*{observation}"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="actions-row">
+                        <button type="submit" class="btn btn-primary">Enregistrer</button>
+                        <a th:href="@{/materiels}" class="btn btn-outline">Annuler</a>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+</div>
+</body>
+</html>

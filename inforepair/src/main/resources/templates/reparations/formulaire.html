@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: entete('Démarrer une réparation')}"></head>
+<body>
+<div class="app-wrapper">
+    <aside th:replace="~{fragments/layout :: menu}"></aside>
+    <div class="main-area">
+        <header th:replace="~{fragments/layout :: topbar('Démarrer une réparation')}"></header>
+        <main class="content">
+            <div th:replace="~{fragments/layout :: messages}"></div>
+
+            <div class="card">
+                <div class="alert alert-info" th:if="${#lists.isEmpty(devisAcceptes)}">
+                    Aucun devis accepté n'est disponible pour démarrer une réparation. Veuillez d'abord enregistrer et faire accepter un devis.
+                </div>
+
+                <form th:if="${!#lists.isEmpty(devisAcceptes)}" th:action="@{/reparations/demarrer}" method="post">
+                    <div class="form-grid">
+                        <div class="form-group full">
+                            <label for="devisId">Devis accepté associé</label>
+                            <select id="devisId" name="devisId" required>
+                                <option value="">-- Sélectionner un devis accepté --</option>
+                                <option th:each="d : ${devisAcceptes}" th:value="${d.id}"
+                                        th:selected="${devisSelectionneId != null and devisSelectionneId == d.id}"
+                                        th:text="${d.numeroDevis + ' - ' + d.materiel.numeroDossier + ' (' + d.materiel.marque + ' ' + d.materiel.modele + ') - ' + d.client.nomComplet + ' - ' + @formatUtils.fcfa(d.montantTotal)}"></option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="technicienId">Technicien responsable (facultatif au démarrage)</label>
+                            <select id="technicienId" name="technicienId">
+                                <option value="">-- Non affecté --</option>
+                                <option th:each="t : ${techniciens}" th:value="${t.id}" th:text="${t.nomComplet}"></option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="dateDebut">Date de début</label>
+                            <input type="date" id="dateDebut" name="dateDebut"
+                                   th:value="${#temporals.format(dateDebutDefaut, 'yyyy-MM-dd')}" required>
+                        </div>
+
+                        <div class="form-group full">
+                            <label for="observation">Observation initiale (facultative)</label>
+                            <textarea id="observation" name="observation"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="actions-row">
+                        <button type="submit" class="btn btn-primary">Démarrer la réparation</button>
+                        <a th:href="@{/reparations}" class="btn btn-outline">Annuler</a>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+</div>
+</body>
+</html>

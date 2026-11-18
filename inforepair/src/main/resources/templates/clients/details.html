@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: entete('Fiche client')}"></head>
+<body>
+<div class="app-wrapper">
+    <aside th:replace="~{fragments/layout :: menu}"></aside>
+    <div class="main-area">
+        <header th:replace="~{fragments/layout :: topbar('Fiche client : ' + ${client.nomComplet})}"></header>
+        <main class="content">
+            <div th:replace="~{fragments/layout :: messages}"></div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title" th:text="${client.codeClient + ' - ' + client.nomComplet}"></h2>
+                    <div class="actions-row">
+                        <a th:href="@{/materiels/nouveau(clientId=${client.id})}" class="btn btn-primary btn-sm">Déposer un matériel</a>
+                        <a th:href="@{/plaintes/nouveau(clientId=${client.id})}" class="btn btn-outline btn-sm">Enregistrer une plainte</a>
+                        <a th:href="@{/clients/{id}/modifier(id=${client.id})}" class="btn btn-secondary btn-sm">Modifier</a>
+                        <form th:action="@{/clients/{id}/basculer-actif(id=${client.id})}" method="post" class="inline-form">
+                            <button type="submit" class="btn btn-outline btn-sm"
+                                    th:text="${client.actif} ? 'Désactiver' : 'Activer'"></button>
+                        </form>
+                        <form th:if="${peutSupprimer}" th:action="@{/clients/{id}/supprimer(id=${client.id})}" method="post" class="inline-form">
+                            <button type="submit" class="btn btn-danger btn-sm">Supprimer</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="info-list">
+                    <div>
+                        <div class="info-item-label">Téléphone</div>
+                        <div class="info-item-value" th:text="${client.telephone}"></div>
+                    </div>
+                    <div>
+                        <div class="info-item-label">Adresse électronique</div>
+                        <div class="info-item-value" th:text="${client.email != null and !#strings.isEmpty(client.email) ? client.email : '-'}"></div>
+                    </div>
+                    <div>
+                        <div class="info-item-label">Adresse / Commune</div>
+                        <div class="info-item-value" th:text="${client.adresseCommune != null and !#strings.isEmpty(client.adresseCommune) ? client.adresseCommune : '-'}"></div>
+                    </div>
+                    <div>
+                        <div class="info-item-label">Date d'enregistrement</div>
+                        <div class="info-item-value" th:text="${@formatUtils.date(client.dateEnregistrement)}"></div>
+                    </div>
+                    <div>
+                        <div class="info-item-label">Statut</div>
+                        <div class="info-item-value" th:text="${client.actif ? 'Actif' : 'Désactivé'}"></div>
+                    </div>
+                    <div>
+                        <div class="info-item-label">Observation</div>
+                        <div class="info-item-value" th:text="${client.observation != null and !#strings.isEmpty(client.observation) ? client.observation : '-'}"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Matériels déposés</h2>
+                </div>
+                <div class="table-responsive" th:if="${!#lists.isEmpty(materiels)}">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Dossier</th>
+                            <th>Type</th>
+                            <th>Marque / Modèle</th>
+                            <th>Date de dépôt</th>
+                            <th>État actuel</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="m : ${materiels}">
+                            <td><a th:href="@{/materiels/{id}(id=${m.id})}" th:text="${m.numeroDossier}"></a></td>
+                            <td th:text="${m.typeMateriel.libelle}"></td>
+                            <td th:text="${m.marque + ' ' + m.modele}"></td>
+                            <td th:text="${@formatUtils.date(m.dateDepot)}"></td>
+                            <td><span class="badge" th:text="${m.etatActuel.libelle}"></span></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-muted" th:if="${#lists.isEmpty(materiels)}">Aucun matériel déposé par ce client.</p>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-header"><h2 class="card-title">Devis</h2></div>
+                    <div class="table-responsive" th:if="${!#lists.isEmpty(devisListe)}">
+                        <table>
+                            <thead>
+                            <tr><th>Numéro</th><th>Date</th><th>Total</th><th>Statut</th></tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="d : ${devisListe}">
+                                <td><a th:href="@{/devis/{id}(id=${d.id})}" th:text="${d.numeroDevis}"></a></td>
+                                <td th:text="${@formatUtils.date(d.dateCreation)}"></td>
+                                <td th:text="${@formatUtils.fcfa(d.montantTotal)}"></td>
+                                <td><span class="badge" th:text="${d.statut.libelle}"></span></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-muted" th:if="${#lists.isEmpty(devisListe)}">Aucun devis.</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-header"><h2 class="card-title">Réparations</h2></div>
+                    <div class="table-responsive" th:if="${!#lists.isEmpty(reparations)}">
+                        <table>
+                            <thead>
+                            <tr><th>Numéro</th><th>Matériel</th><th>Début</th><th>Statut</th></tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="r : ${reparations}">
+                                <td><a th:href="@{/reparations/{id}(id=${r.id})}" th:text="${r.numeroReparation}"></a></td>
+                                <td th:text="${r.materiel.numeroDossier}"></td>
+                                <td th:text="${@formatUtils.date(r.dateDebut)}"></td>
+                                <td><span class="badge" th:text="${r.statut.libelle}"></span></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-muted" th:if="${#lists.isEmpty(reparations)}">Aucune réparation.</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-header"><h2 class="card-title">Paiements</h2></div>
+                    <div class="table-responsive" th:if="${!#lists.isEmpty(paiements)}">
+                        <table>
+                            <thead>
+                            <tr><th>Numéro</th><th>Date</th><th>Montant</th><th>État</th></tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="p : ${paiements}">
+                                <td th:text="${p.numeroPaiement}"></td>
+                                <td th:text="${@formatUtils.date(p.datePaiement)}"></td>
+                                <td th:text="${@formatUtils.fcfa(p.montant)}"></td>
+                                <td th:text="${p.annule ? 'Annulé' : 'Valide'}"></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-muted" th:if="${#lists.isEmpty(paiements)}">Aucun paiement.</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-header"><h2 class="card-title">Plaintes</h2></div>
+                    <div class="table-responsive" th:if="${!#lists.isEmpty(plaintes)}">
+                        <table>
+                            <thead>
+                            <tr><th>Numéro</th><th>Objet</th><th>Date</th><th>Statut</th></tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="pl : ${plaintes}">
+                                <td><a th:href="@{/plaintes/{id}(id=${pl.id})}" th:text="${pl.numeroPlainte}"></a></td>
+                                <td th:text="${pl.objet}"></td>
+                                <td th:text="${@formatUtils.date(pl.dateDepot)}"></td>
+                                <td><span class="badge" th:text="${pl.statut.libelle}"></span></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-muted" th:if="${#lists.isEmpty(plaintes)}">Aucune plainte.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+</body>
+</html>

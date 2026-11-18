@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: entete('Réparations')}"></head>
+<body>
+<div class="app-wrapper">
+    <aside th:replace="~{fragments/layout :: menu}"></aside>
+    <div class="main-area">
+        <header th:replace="~{fragments/layout :: topbar('Gestion des réparations')}"></header>
+        <main class="content">
+            <div th:replace="~{fragments/layout :: messages}"></div>
+
+            <div class="card">
+                <div class="toolbar">
+                    <span class="card-title">Liste des réparations</span>
+                    <a th:href="@{/reparations/nouveau}" class="btn btn-primary" sec:authorize="hasAnyRole('ADMIN','AGENT')">Démarrer une réparation</a>
+                </div>
+
+                <div class="table-responsive" th:if="${!#lists.isEmpty(reparations)}">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Numéro</th>
+                            <th>Devis</th>
+                            <th>Matériel</th>
+                            <th>Client</th>
+                            <th>Technicien</th>
+                            <th>Début</th>
+                            <th>Fin</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="r : ${reparations}">
+                            <td><a th:href="@{/reparations/{id}(id=${r.id})}" th:text="${r.numeroReparation}"></a></td>
+                            <td><a th:href="@{/devis/{id}(id=${r.devis.id})}" th:text="${r.devis.numeroDevis}"></a></td>
+                            <td th:text="${r.materiel.numeroDossier + ' - ' + r.materiel.marque + ' ' + r.materiel.modele}"></td>
+                            <td th:text="${r.client.nomComplet}"></td>
+                            <td th:text="${r.technicien != null ? r.technicien.nomComplet : 'Non affecté'}"></td>
+                            <td th:text="${@formatUtils.date(r.dateDebut)}"></td>
+                            <td th:text="${@formatUtils.date(r.dateFin)}"></td>
+                            <td><span class="badge" th:text="${r.statut.libelle}"></span></td>
+                            <td>
+                                <a th:href="@{/reparations/{id}(id=${r.id})}" class="btn btn-outline btn-sm">Gérer / Suivre</a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-muted" th:if="${#lists.isEmpty(reparations)}">Aucune réparation enregistrée.</p>
+            </div>
+        </main>
+    </div>
+</div>
+</body>
+</html>

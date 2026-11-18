@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: entete('Détails de la plainte')}"></head>
+<body>
+<div class="app-wrapper">
+    <aside th:replace="~{fragments/layout :: menu}"></aside>
+    <div class="main-area">
+        <header th:replace="~{fragments/layout :: topbar('Plainte : ' + ${plainte.numeroPlainte})}"></header>
+        <main class="content">
+            <div th:replace="~{fragments/layout :: messages}"></div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title" th:text="${plainte.numeroPlainte + ' - ' + plainte.objet}"></h2>
+                    <div class="actions-row" sec:authorize="hasAnyRole('ADMIN','AGENT')">
+                        <a th:if="${plainte.statut.name() != 'CLOTUREE'}"
+                           th:href="@{/plaintes/{id}/modifier(id=${plainte.id})}" class="btn btn-secondary btn-sm">Modifier</a>
+                    </div>
+                </div>
+
+                <div class="info-list">
+                    <div>
+                        <div class="info-item-label">Statut</div>
+                        <div class="info-item-value"><span class="badge" th:text="${plainte.statut.libelle}"></span></div>
+                    </div>
+                    <div>
+                        <div class="info-item-label">Type de plainte</div>
+                        <div class="info-item-value" th:text="${plainte.typePlainte.libelle}"></div>
+                    </div>
+                    <div>
+                        <div class="info-item-label">Client</div>
+                        <div class="info-item-value" th:text="${plainte.client.nomComplet + ' (' + plainte.client.telephone + ')'}"></div>
+                    </div>
+                    <div>
+                        <div class="info-item-label">Matériel concerné</div>
+                        <div class="info-item-value" th:text="${plainte.materiel != null ? plainte.materiel.numeroDossier + ' - ' + plainte.materiel.marque : 'Plainte générale'}"></div>
+                    </div>
+                    <div>
+                        <div class="info-item-label">Réparation associée</div>
+                        <div class="info-item-value" th:text="${plainte.reparation != null ? plainte.reparation.numeroReparation : '-'}"></div>
+                    </div>
+                    <div>
+                        <div class="info-item-label">Responsable du traitement</div>
+                        <div class="info-item-value" th:text="${plainte.responsable != null ? plainte.responsable.nomComplet : 'Non affecté'}"></div>
+                    </div>
+                    <div>
+                        <div class="info-item-label">Date de dépôt</div>
+                        <div class="info-item-value" th:text="${@formatUtils.date(plainte.dateDepot)}"></div>
+                    </div>
+                    <div>
+                        <div class="info-item-label">Date de résolution</div>
+                        <div class="info-item-value" th:text="${@formatUtils.date(plainte.dateResolution)}"></div>
+                    </div>
+                    <div style="grid-column: 1 / -1;">
+                        <div class="info-item-label">Description détaillée</div>
+                        <div class="info-item-value" th:text="${plainte.description}"></div>
+                    </div>
+                    <div style="grid-column: 1 / -1;" th:if="${plainte.solutionApportee != null and !#strings.isEmpty(plainte.solutionApportee)}">
+                        <div class="info-item-label">Solution apportée</div>
+                        <div class="info-item-value" th:text="${plainte.solutionApportee}"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="card" sec:authorize="hasAnyRole('ADMIN','AGENT')">
+                    <div class="card-header">
+                        <h2 class="card-title" th:text="${plainte.statut.name() == 'CLOTUREE' ? 'Enregistrer une nouvelle action de suivi' : 'Traiter la plainte'}"></h2>
+                    </div>
+                    <form th:action="@{/plaintes/{id}/traiter(id=${plainte.id})}" method="post">
+                        <div class="form-group">
+                            <label for="nouveauStatut">Statut</label>
+                            <select id="nouveauStatut" name="nouveauStatut" required>
+                                <option th:each="s : ${statutsPlainte}" th:value="${s}" th:text="${s.libelle}"
+                                        th:selected="${plainte.statut == s}"></option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" th:if="${plainte.statut.name() != 'CLOTUREE'}">
+                            <label for="responsableId">Responsable</label>
+                            <select id="responsableId" name="responsableId">
+                                <option value="">-- Non affecté --</option>
+                                <option th:each="u : ${utilisateurs}" th:value="${u.id}" th:text="${u.nomComplet}"
+                                        th:selected="${plainte.responsable != null and plainte.responsable.id == u.id}"></option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="actionRealisee">Action réalisée / Suivi</label>
+                            <textarea id="actionRealisee" name="actionRealisee" required placeholder="Décrire l'action menée pour traiter cette réclamation"></textarea>
+                        </div>
+
+                        <div class="form-group" th:if="${plainte.statut.name() != 'CLOTUREE'}">
+                            <label for="solutionApportee">Solution apportée (facultative)</label>
+                            <textarea id="solutionApportee" name="solutionApportee" th:text="${plainte.solutionApportee}"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="observationSuivi">Observation (facultative)</label>
+                            <input type="text" id="observationSuivi" name="observation">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Enregistrer l'action</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <div class="card-header"><h2 class="card-title">Historique de traitement</h2></div>
+                    <div class="table-responsive" th:if="${!#lists.isEmpty(historiques)}">
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Statut</th>
+                                <th>Action réalisée</th>
+                                <th>Par</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="h : ${historiques}">
+                                <td th:text="${@formatUtils.dateTime(h.dateModification)}"></td>
+                                <td><span class="badge" th:text="${h.nouveauStatut.libelle}"></span></td>
+                                <td th:text="${h.actionRealisee + (h.observation != null and !#strings.isEmpty(h.observation) ? ' (' + h.observation + ')' : '')}"></td>
+                                <td th:text="${h.utilisateur != null ? h.utilisateur.nomComplet : '-'}"></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-muted" th:if="${#lists.isEmpty(historiques)}">Aucun historique.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+</body>
+</html>

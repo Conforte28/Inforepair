@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: entete('Détails du matériel')}"></head>
+<body>
+<div class="app-wrapper">
+    <aside th:replace="~{fragments/layout :: menu}"></aside>
+    <div class="main-area">
+        <header th:replace="~{fragments/layout :: topbar('Dossier matériel : ' + ${materiel.numeroDossier})}"></header>
+        <main class="content">
+            <div th:replace="~{fragments/layout :: messages}"></div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title" th:text="${materiel.numeroDossier + ' - ' + materiel.marque + ' ' + materiel.modele}"></h2>
+                    <div class="actions-row" sec:authorize="hasAnyRole('ADMIN','AGENT')">
+                        <a th:href="@{/devis/nouveau(materielId=${materiel.id})}" class="btn btn-primary btn-sm">Créer un devis</a>
+                        <a th:href="@{/plaintes/nouveau(materielId=${materiel.id})}" class="btn btn-outline btn-sm">Enregistrer une plainte</a>
+                        <a th:href="@{/materiels/{id}/modifier(id=${materiel.id})}" class="btn btn-secondary btn-sm">Modifier</a>
+                        <form th:if="${peutSupprimer}" th:action="@{/materiels/{id}/supprimer(id=${materiel.id})}" method="post" class="inline-form">
+                            <button type="submit" class="btn btn-danger btn-sm">Supprimer</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="info-list">
+                    <div>
+                        <div class="info-item-label">Client</div>
+                        <div class="info-item-value">
+                            <a th:href="@{/clients/{id}(id=${materiel.client.id})}" th:text="${materiel.client.nomComplet}" sec:authorize="hasAnyRole('ADMIN','AGENT')"></a>
+                            <span th:text="${materiel.client.nomComplet}" sec:authorize="hasRole('TECHNICIEN')"></span>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="info-item-label">Type de matériel</div>
+                        <div class="info-item-value" th:text="${materiel.typeMateriel.libelle}"></div>
+                    </div>
+                    <div>
+                        <div class="info-item-label">Marque et modèle</div>
+                        <div class="info-item-value" th:text="${materiel.marque + ' ' + materiel.modele}"></div>
+                    </div>
+                    <div>
+                        <div class="info-item-label">Numéro de série</div>
+                        <div class="info-item-value" th:text="${materiel.numeroSerie != null and !#strings.isEmpty(materiel.numeroSerie) ? materiel.numeroSerie : '-'}"></div>
+                    </div>
+                    <div>
+                        <div class="info-item-label">Date de dépôt</div>
+                        <div class="info-item-value" th:text="${@formatUtils.date(materiel.dateDepot)}"></div>
+                    </div>
+                    <div>
+                        <div class="info-item-label">État actuel</div>
+                        <div class="info-item-value"><span class="badge" th:text="${materiel.etatActuel.libelle}"></span></div>
+                    </div>
+                    <div>
+                        <div class="info-item-label">Accessoires déposés</div>
+                        <div class="info-item-value" th:text="${materiel.accessoiresDeposes != null and !#strings.isEmpty(materiel.accessoiresDeposes) ? materiel.accessoiresDeposes : '-'}"></div>
+                    </div>
+                    <div>
+                        <div class="info-item-label">État physique au dépôt</div>
+                        <div class="info-item-value" th:text="${materiel.etatPhysique != null and !#strings.isEmpty(materiel.etatPhysique) ? materiel.etatPhysique : '-'}"></div>
+                    </div>
+                    <div>
+                        <div class="info-item-label">Accès session</div>
+                        <div class="info-item-value" th:text="${materiel.sessionCodeFourni ? 'Prévu hors ligne' : 'Non requis'}"></div>
+                    </div>
+                    <div>
+                        <div class="info-item-label">Problème signalé</div>
+                        <div class="info-item-value" th:text="${materiel.descriptionProbleme}"></div>
+                    </div>
+                    <div>
+                        <div class="info-item-label">Observation</div>
+                        <div class="info-item-value" th:text="${materiel.observation != null and !#strings.isEmpty(materiel.observation) ? materiel.observation : '-'}"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" sec:authorize="hasAnyRole('ADMIN','AGENT')">
+                <div class="card-header"><h2 class="card-title">Mettre à jour l'état du suivi</h2></div>
+                <form th:action="@{/materiels/{id}/etat(id=${materiel.id})}" method="post" class="form-grid">
+                    <div class="form-group">
+                        <label for="nouvelEtat">Nouvel état</label>
+                        <select id="nouvelEtat" name="nouvelEtat" required>
+                            <option th:each="e : ${etatsMateriel}" th:value="${e}" th:text="${e.libelle}"
+                                    th:selected="${materiel.etatActuel == e}"></option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="observationEtat">Observation (facultative)</label>
+                        <input type="text" id="observationEtat" name="observation" placeholder="Précision sur le changement d'état">
+                    </div>
+                    <div class="form-group full">
+                        <button type="submit" class="btn btn-primary">Enregistrer le changement d'état</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-header"><h2 class="card-title">Historique de suivi</h2></div>
+                    <div class="table-responsive" th:if="${!#lists.isEmpty(historiques)}">
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Ancien état</th>
+                                <th>Nouvel état</th>
+                                <th>Utilisateur</th>
+                                <th>Observation</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="h : ${historiques}">
+                                <td th:text="${@formatUtils.dateTime(h.dateModification)}"></td>
+                                <td th:text="${h.ancienEtat != null ? h.ancienEtat.libelle : '-'}"></td>
+                                <td><span class="badge" th:text="${h.nouvelEtat.libelle}"></span></td>
+                                <td th:text="${h.utilisateur != null ? h.utilisateur.nomComplet : '-'}"></td>
+                                <td th:text="${h.observation != null ? h.observation : '-'}"></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-muted" th:if="${#lists.isEmpty(historiques)}">Aucun historique.</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-header"><h2 class="card-title">Devis et réparations liés</h2></div>
+                    <div th:if="${!#lists.isEmpty(devisListe)}" style="margin-bottom:16px;">
+                        <h3 style="font-size:14px; margin-bottom:8px;">Devis</h3>
+                        <table>
+                            <thead><tr><th>Numéro</th><th>Date</th><th>Total</th><th>Statut</th></tr></thead>
+                            <tbody>
+                            <tr th:each="d : ${devisListe}">
+                                <td><a th:href="@{/devis/{id}(id=${d.id})}" th:text="${d.numeroDevis}"></a></td>
+                                <td th:text="${@formatUtils.date(d.dateCreation)}"></td>
+                                <td th:text="${@formatUtils.fcfa(d.montantTotal)}"></td>
+                                <td><span class="badge" th:text="${d.statut.libelle}"></span></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div th:if="${!#lists.isEmpty(reparations)}">
+                        <h3 style="font-size:14px; margin-bottom:8px;">Réparations</h3>
+                        <table>
+                            <thead><tr><th>Numéro</th><th>Technicien</th><th>Statut</th></tr></thead>
+                            <tbody>
+                            <tr th:each="r : ${reparations}">
+                                <td><a th:href="@{/reparations/{id}(id=${r.id})}" th:text="${r.numeroReparation}"></a></td>
+                                <td th:text="${r.technicien != null ? r.technicien.nomComplet : 'Non affecté'}"></td>
+                                <td><span class="badge" th:text="${r.statut.libelle}"></span></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-muted" th:if="${#lists.isEmpty(devisListe) and #lists.isEmpty(reparations)}">Aucun devis ni réparation associé.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+</body>
+</html>

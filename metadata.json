@@ -1,0 +1,6 @@
+{
+  "name": "INFOREPAIR",
+  "description": "Système de suivi de réparation de matériel informatique (Java 17, Spring Boot 3, PostgreSQL)",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
