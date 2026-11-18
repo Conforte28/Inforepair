@@ -9,12 +9,15 @@
     </div>
 
     <div class="print-header">
-        <div>
-            <h1 style="color:#16466A; font-size:22px;" th:text="${entreprise.nomEntreprise}">INFOREPAIR</h1>
-            <p class="text-muted" th:if="${entreprise.commune != null}" th:text="${entreprise.commune}"></p>
-            <p class="text-muted" th:if="${entreprise.adresse != null}" th:text="${entreprise.adresse}"></p>
-            <p class="text-muted" th:if="${entreprise.telephone != null}" th:text="'Tél : ' + ${entreprise.telephone}"></p>
-            <p class="text-muted" th:if="${entreprise.email != null}" th:text="${entreprise.email}"></p>
+        <div class="print-brand">
+            <img th:src="@{/images/logo.jpg}" alt="Logo" class="print-logo">
+            <div>
+                <h1 style="color:#16466A; font-size:22px;" th:text="${entreprise.nomEntreprise}">INFOREPAIR</h1>
+                <p class="text-muted" th:if="${entreprise.commune != null}" th:text="${entreprise.commune}"></p>
+                <p class="text-muted" th:if="${entreprise.adresse != null}" th:text="${entreprise.adresse}"></p>
+                <p class="text-muted" th:if="${entreprise.telephone != null}" th:text="'Tél : ' + ${entreprise.telephone}"></p>
+                <p class="text-muted" th:if="${entreprise.email != null}" th:text="${entreprise.email}"></p>
+            </div>
         </div>
         <div style="text-align:right;">
             <h2 style="color:#38A9E8; font-size:20px;">DEVIS DE RÉPARATION</h2>

@@ -4,14 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${titre} + ' - INFOREPAIR'">INFOREPAIR</title>
+    <link rel="icon" type="image/jpeg" th:href="@{/images/logo.jpg}">
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
 
 <aside th:fragment="menu" class="sidebar" id="sidebar">
     <div class="sidebar-header">
-        <div class="sidebar-brand">INFOREPAIR</div>
-        <div class="sidebar-subtitle" th:text="${entreprise.nomEntreprise}">INFOREPAIR</div>
+        <img th:src="@{/images/logo.jpg}" alt="Logo INFOREPAIR" class="sidebar-logo">
+        <div>
+            <div class="sidebar-brand">INFOREPAIR</div>
+            <div class="sidebar-subtitle" th:text="${entreprise.nomEntreprise}">INFOREPAIR</div>
+        </div>
     </div>
     <nav class="sidebar-nav">
         <a th:href="@{/}" class="nav-link" th:classappend="${menuActif == 'tableau-de-bord'} ? 'actif' : ''">Tableau de bord</a>
@@ -39,8 +43,11 @@
         <h1 class="page-title" th:text="${titre}">Titre</h1>
     </div>
     <div class="topbar-entreprise">
-        <div th:text="${entreprise.nomEntreprise}">INFOREPAIR</div>
-        <div th:if="${entreprise.commune != null and !#strings.isEmpty(entreprise.commune)}" th:text="${entreprise.commune}">Cotonou</div>
+        <span class="status-dot"></span>
+        <div>
+            <div style="font-weight:700; color:#16466A;" th:text="${entreprise.nomEntreprise}">INFOREPAIR</div>
+            <div th:if="${entreprise.commune != null and !#strings.isEmpty(entreprise.commune)}" th:text="${entreprise.commune}">Cotonou</div>
+        </div>
     </div>
 </header>
 

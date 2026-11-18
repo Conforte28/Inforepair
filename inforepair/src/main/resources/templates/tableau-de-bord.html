@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:replace="~{fragments/layout :: entete('Tableau de bord')}"></head>
 <body>
 <div class="app-wrapper">
@@ -8,6 +8,21 @@
         <header th:replace="~{fragments/layout :: topbar('Tableau de bord')}"></header>
         <main class="content">
             <div th:replace="~{fragments/layout :: messages}"></div>
+
+            <section class="hero-atelier">
+                <div class="hero-atelier-brand">
+                    <img th:src="@{/images/logo.jpg}" alt="Logo INFOREPAIR" class="hero-atelier-logo">
+                    <div>
+                        <h2 th:text="${entreprise.nomEntreprise}">INFOREPAIR</h2>
+                        <p>Système de suivi de réparation de matériel informatique</p>
+                    </div>
+                </div>
+                <div class="hero-actions" sec:authorize="hasAnyRole('ADMIN','AGENT')">
+                    <a th:href="@{/clients/nouveau}" class="btn-hero">Nouveau client</a>
+                    <a th:href="@{/materiels/nouveau}" class="btn-hero-outline">Enregistrer un matériel</a>
+                    <a th:href="@{/devis/nouveau}" class="btn-hero-outline">Créer un devis</a>
+                </div>
+            </section>
 
             <div class="kpi-grid">
                 <div class="kpi-card">
@@ -46,6 +61,21 @@
                     <div class="kpi-label">Réparations payées (mois en cours)</div>
                     <div class="kpi-value" th:text="${@formatUtils.fcfa(montantPaiementsMois)}">0 FCFA</div>
                 </div>
+            </div>
+
+            <div class="atelier-gallery">
+                <a th:href="@{/materiels}" class="atelier-photo-card">
+                    <img th:src="@{/images/atelier-equipe.jpg}" alt="Réception et diagnostic">
+                    <div class="atelier-photo-caption">Réception et diagnostic matériel</div>
+                </a>
+                <a th:href="@{/devis}" class="atelier-photo-card">
+                    <img th:src="@{/images/soudure-precision.jpg}" alt="Évaluation et devis">
+                    <div class="atelier-photo-caption">Évaluation technique et devis</div>
+                </a>
+                <a th:href="@{/reparations}" class="atelier-photo-card">
+                    <img th:src="@{/images/technicien-atelier.jpg}" alt="Interventions et réparations">
+                    <div class="atelier-photo-caption">Interventions et contrôle qualité</div>
+                </a>
             </div>
 
             <div class="grid-2">

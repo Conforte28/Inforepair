@@ -25,7 +25,7 @@ public class SecurityConfig {
         http
             .csrf(Customizer.withDefaults())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/css/**", "/login", "/error").permitAll()
+                .requestMatchers("/css/**", "/images/**", "/login", "/error").permitAll()
                 .requestMatchers("/utilisateurs/**", "/parametres/entreprise").hasRole("ADMIN")
                 .requestMatchers("/clients/**", "/paiements/**").hasAnyRole("ADMIN", "AGENT")
                 .requestMatchers("/materiels/nouveau", "/materiels/enregistrer", "/materiels/*/modifier", "/materiels/*/etat", "/materiels/*/supprimer").hasAnyRole("ADMIN", "AGENT")
